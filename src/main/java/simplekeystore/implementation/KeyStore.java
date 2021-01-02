@@ -31,7 +31,7 @@ public class KeyStore implements SimpleKeyInterface {
     }
 
     public KeyStore() throws FileNotFoundException{
-        valuesFile = new RandomAccessFile(new File("valuesFile.txt"), "rwd");
+        valuesFile = new RandomAccessFile(new File("src/main/resources/valuesFile"+Math.random()+".txt"), "rwd");
     }
 
     @Override
