@@ -50,6 +50,7 @@ public class KeyStore implements SimpleKeyInterface {
 
         if (deletedSpacesInFile.size() > 0){
             writeFrom = getEmptySpaceLocation(valueLength);
+            System.out.println("Write from" + getEmptySpaceLocation(49));
             valuesFile.seek(writeFrom);
         }
         else{
@@ -71,14 +72,11 @@ public class KeyStore implements SimpleKeyInterface {
 
         while(queueIterator.hasNext()){
             nodeMeta = (MetaData) queueIterator.next();
-            System.out.println("comparing" + valueLength + " and " + nodeMeta.length + " at "+ nodeMeta.offset);
             if(nodeMeta.length >= valueLength){
-                deletedSpacesInFile.remove(queueIterator);
+                deletedSpacesInFile.remove(nodeMeta);
                 break;
             }
         }
-
-        System.out.println(nodeMeta.offset);
         return nodeMeta.offset;
     }
 
@@ -89,7 +87,6 @@ public class KeyStore implements SimpleKeyInterface {
         newNodeMeta.offset = offset;
         newNodeMeta.expiresAt = time.plusSeconds(timeToLive);
         newNodeMeta.removeAfterExpiry = removeAfterExpiry;
-
         mapKeyAndValueLoc.put(key,newNodeMeta);
     }
 
@@ -108,12 +105,11 @@ public class KeyStore implements SimpleKeyInterface {
 
     @Override
     public synchronized void delete(String key) throws CustomizedException {
-        if (!mapKeyAndValueLoc.contains(key)) throw new CustomizedException("Key does not exist");
+        //if (!mapKeyAndValueLoc.contains(key)) throw new CustomizedException("Key does not exist");
         MetaData metaOfDeleted = mapKeyAndValueLoc.get(key);
         mapKeyAndValueLoc.remove(key);
         deletedSpacesInFile.add(metaOfDeleted);
         NUMBER_OF_OPERATIONS++;
-
     }
 
     private void checkSizeConstraints(String key, String value) throws CustomizedException {
@@ -137,7 +133,6 @@ public class KeyStore implements SimpleKeyInterface {
                 System.out.println(key + " Expired");
             }
         }
-
     }
 }
 
