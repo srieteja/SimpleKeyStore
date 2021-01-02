@@ -50,7 +50,6 @@ public class KeyStore implements SimpleKeyInterface {
 
         if (deletedSpacesInFile.size() > 0){
             writeFrom = getEmptySpaceLocation(valueLength);
-            System.out.println("Write from" + getEmptySpaceLocation(49));
             valuesFile.seek(writeFrom);
         }
         else{
