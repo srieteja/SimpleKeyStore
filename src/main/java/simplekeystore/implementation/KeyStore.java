@@ -43,20 +43,21 @@ public class KeyStore implements SimpleKeyInterface {
     }
 
     private synchronized void writeToFile(String key, String value, long timeToLive, boolean removeAfterExpiry) throws CustomizedException, IOException {
-        long writeFrom;
+        MetaData writeFrom;
         checkSizeConstraints(key, value);
         checkKeyExists(key);
         Integer valueLength = value.length();
 
         if (deletedSpacesInFile.size() > 0){
             writeFrom = getEmptySpaceLocation(valueLength);
-            valuesFile.seek(writeFrom);
+            valuesFile.seek(writeFrom.offset);
+            insertIntoHashMap(key, writeFrom.length, writeFrom.offset, timeToLive, removeAfterExpiry);
         }
         else{
             valuesFile.seek(valuesFile.length());
+            insertIntoHashMap(key, valueLength, valuesFile.length(), timeToLive, removeAfterExpiry);
         }
 
-        insertIntoHashMap(key, valueLength, valuesFile.length(), timeToLive, removeAfterExpiry);
         valuesFile.writeUTF(value);
         NUMBER_OF_OPERATIONS++;
         if (NUMBER_OF_OPERATIONS > 1000){
@@ -65,7 +66,7 @@ public class KeyStore implements SimpleKeyInterface {
         }
     }
 
-    private long getEmptySpaceLocation(Integer valueLength){
+    private MetaData getEmptySpaceLocation(Integer valueLength){
         Iterator queueIterator = deletedSpacesInFile.iterator();
         MetaData nodeMeta = null;
 
@@ -76,7 +77,7 @@ public class KeyStore implements SimpleKeyInterface {
                 break;
             }
         }
-        return nodeMeta.offset;
+        return nodeMeta;
     }
 
     private void insertIntoHashMap(String key, Integer valueLength, long offset, long timeToLive, boolean removeAfterExpiry) {
@@ -91,7 +92,7 @@ public class KeyStore implements SimpleKeyInterface {
 
     @Override
     public synchronized JSONObject read(String key) throws IOException, NullPointerException, ParseException, CustomizedException {
-        if (!mapKeyAndValueLoc.contains(key)) throw new CustomizedException("Key does not exist");
+        if (!mapKeyAndValueLoc.containsKey(key)) throw new CustomizedException("Key does not exist");
         String value;
         MetaData meta = mapKeyAndValueLoc.get(key);
         valuesFile.seek(meta.offset);
@@ -104,7 +105,7 @@ public class KeyStore implements SimpleKeyInterface {
 
     @Override
     public synchronized void delete(String key) throws CustomizedException {
-        //if (!mapKeyAndValueLoc.contains(key)) throw new CustomizedException("Key does not exist");
+        if (!mapKeyAndValueLoc.containsKey(key)) throw new CustomizedException("Key does not exist");
         MetaData metaOfDeleted = mapKeyAndValueLoc.get(key);
         mapKeyAndValueLoc.remove(key);
         deletedSpacesInFile.add(metaOfDeleted);
